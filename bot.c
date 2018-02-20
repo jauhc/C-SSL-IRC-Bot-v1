@@ -10,7 +10,6 @@
 
 #define FAIL -1
 
-// copypasted 18 year old source from https://www.cs.utah.edu/~swalton/listings/articles/ssl_client.c
 // holy fuck this is so BAD
 
 int OpenConnection(const char *hostname, int port)
