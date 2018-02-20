@@ -10,6 +10,7 @@
 
 #define FAIL -1
 
+// copypasted 18 year old source from https://www.cs.utah.edu/~swalton/listings/articles/ssl_client.c
 // holy fuck this is so BAD
 
 int OpenConnection(const char *hostname, int port)
@@ -55,27 +56,6 @@ SSL_CTX *InitCTX(void)
     return ctx;
 }
 
-void ShowCerts(SSL *ssl)
-{
-    X509 *cert;
-    char *line;
-
-    cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
-    if (cert != NULL)
-    {
-        printf("Server certificates:\n");
-        line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
-        printf("Subject: %s\n", line);
-        free(line); /* free the malloc'ed string */
-        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
-        printf("Issuer: %s\n", line);
-        free(line);      /* free the malloc'ed string */
-        X509_free(cert); /* free the malloc'ed certificate copy */
-    }
-    else
-        printf("No certificates.\n");
-}
-
 int server;
 char sbuf[512];
 SSL *ssl;
@@ -97,11 +77,13 @@ void sendMessage(char *target, char *message)
 
 void checkForCMD(char *user, char *command, char *where, char *target, char *message)
 {
+    #define strcmp0(a, b) strncmp(a, b, sizeof(b))
     printf("[from: %s] [reply-with: %s] [where: %s] [reply-to: %s] %s", user, command, where, target, message);
 
     // test func
     char *reply = "funky shit";
-    if (!strncmp(message, ".test", 5))
+    //if (!strncmp(message, ".test", 5))
+    if (!strcmp0(message, ".test"))
     {
         sendMessage(where, reply);
     }
@@ -115,7 +97,7 @@ int main()
 
     char *nick = "asto";
     char *channel = "#dev";
-    char *host = "server.address";
+    char *host = "server.ip";
     char *port = "6697";
 
     ctx = InitCTX();
@@ -127,7 +109,6 @@ int main()
     else
     {
         printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
-        ShowCerts(ssl);
         bytes = SSL_read(ssl, buf, sizeof(buf)); /* get reply & decrypt */
         buf[bytes] = 0;
         printf("Received: \"%s\"\n", buf);
