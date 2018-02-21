@@ -69,6 +69,7 @@ void raw(char *fmt, ...)
     SSL_write(ssl, sbuf, strlen(sbuf)); /* encrypt & send message */
 }
 
+// wrote this to make life easier
 void sendMessage(char *target, char *message)
 {
     raw("PRIVMSG %s :%s\r\n", target, message);
@@ -76,12 +77,14 @@ void sendMessage(char *target, char *message)
 
 void checkForCMD(char *user, char *command, char *where, char *target, char *message)
 {
+    // some black magic voodoo from russia
     #define strcmp0(a, b) strncmp(a, b, sizeof(b))
+    
     printf("[from: %s] [reply-with: %s] [where: %s] [reply-to: %s] %s", user, command, where, target, message);
 
     // test func
     char *reply = "funky shit";
-    //if (!strncmp(message, ".test", 5))
+    //if (!strncmp(message, ".test", 5)) // if you want to use _native_ method
     if (!strcmp0(message, ".test"))
     {
         sendMessage(where, reply);
@@ -91,13 +94,13 @@ void checkForCMD(char *user, char *command, char *where, char *target, char *mes
 int main()
 {
     SSL_CTX *ctx;
-    char buf[513];
+    char buf[513]; // not experienced enough to tell if this size matters
     int bytes;
 
-    char *nick = "asto";
-    char *channel = "#dev";
-    char *host = "server.ip";
-    char *port = "6697";
+    char *nick = "asto"; // bot's NICKNAME
+    char *channel = "#dev"; // channel to join
+    char *host = "server.ip"; // server address/ip
+    char *port = "6697"; // server's port
 
     ctx = InitCTX();
     server = OpenConnection(host, atoi(port));
@@ -178,7 +181,7 @@ int main()
 
                         if (!strncmp(command, "001", 3) && channel != NULL)
                         {
-                            raw("JOIN %s\r\n", channel); // add multichannel support i.e. an array
+                            raw("JOIN %s\r\n", channel); // todo: add multichannel support i.e. an array of channels
                         }
                         else if (!strncmp(command, "PRIVMSG", 7) || !strncmp(command, "NOTICE", 6))
                         {
