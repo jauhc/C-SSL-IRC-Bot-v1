@@ -8,6 +8,23 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#define COLOR_NC "\e[0m"
+#define COLOR_BLACK "\e[0;30m"
+#define COLOR_BLUE "\e[0;34m"
+#define COLOR_LIGHT_BLUE "\e[1;34m"
+#define COLOR_GREEN "\e[0;32m"
+#define COLOR_LIGHT_GREEN "\e[1;32m"
+#define COLOR_CYAN "\e[0;36m"
+#define COLOR_LIGHT_CYAN "\e[1;36m"
+#define COLOR_RED "\e[0;31m"
+#define COLOR_LIGHT_RED "\e[1;31m"
+#define COLOR_PURPLE "\e[0;35m"
+#define COLOR_LIGHT_PURPLE "\e[1;35m"
+#define COLOR_BROWN "\e[0;33m"
+#define COLOR_YELLOW "\e[1;33m"
+#define COLOR_GRAY "\e[0;30m"
+#define COLOR_LIGHT_GRAY "\e[0;37m"
+
 #define FAIL -1
 
 // holy fuck this is so BAD
@@ -42,11 +59,11 @@ SSL_CTX *InitCTX(void)
     SSL_METHOD *method;
     SSL_CTX *ctx;
 
-    SSL_library_init();             // THANKS GOOGLE
-    OpenSSL_add_all_algorithms();   /* Load cryptos, et.al. */
-    SSL_load_error_strings();       /* Bring in and register error messages */
-    method = TLSv1_client_method(); /* Create new client-method instance */
-    ctx = SSL_CTX_new(method);      /* Create new context */
+    SSL_library_init();              // THANKS GOOGLE
+    OpenSSL_add_all_algorithms();    /* Load cryptos, et.al. */
+    SSL_load_error_strings();        /* Bring in and register error messages */
+    method = SSLv23_client_method(); /* Create new client-method instance */
+    ctx = SSL_CTX_new(method);       /* Create new context */
     if (ctx == NULL)
     {
         ERR_print_errors_fp(stderr);
@@ -77,17 +94,22 @@ void sendMessage(char *target, char *message)
 
 void checkForCMD(char *user, char *command, char *where, char *target, char *message)
 {
-    // some black magic voodoo from russia
-    #define strcmp0(a, b) strncmp(a, b, sizeof(b))
-    
-    printf("[from: %s] [reply-with: %s] [where: %s] [reply-to: %s] %s", user, command, where, target, message);
+// some black magic voodoo from russia
+#define strcmp0(a, b) strncmp(a, b, sizeof(b))
+
+    //printf("[from: %s] [reply-with: %s] [where: %s] [reply-to: %s] %s", user, command, where, target, message);
+    printf(COLOR_GREEN "[%s] " COLOR_CYAN "%s: " COLOR_NC "%s", where, user, message);
+
+    if (strstr(message, "@forsen") != NULL) // alerts on certain messages, just an example of possibilities
+        printf("\a");
+
 
     // test func
     char *reply = "funky shit";
     //if (!strncmp(message, ".test", 5)) // if you want to use _native_ method
     if (!strcmp0(message, ".test"))
     {
-        sendMessage(where, reply);
+        //sendMessage(where, reply);
     }
 }
 
@@ -97,10 +119,10 @@ int main()
     char buf[513]; // not experienced enough to tell if this size matters
     int bytes;
 
-    char *nick = "asto"; // bot's NICKNAME
-    char *channel = "#dev"; // channel to join
-    char *host = "server.ip"; // server address/ip
-    char *port = "6697"; // server's port
+    char *nick = "justinfan14488";     // bot's NICKNAME
+    char *channel = "#forsen";         // channel to join
+    char *host = "irc.chat.twitch.tv"; // server address/ip
+    char *port = "6697";               // server's port
 
     ctx = InitCTX();
     server = OpenConnection(host, atoi(port));
@@ -110,6 +132,9 @@ int main()
         ERR_print_errors_fp(stderr);
     else
     {
+        raw("NICK %s\r\n", nick);
+        raw("JOIN %s\r\n", channel); // todo: add multichannel support i.e. an array of channels
+
         printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
         bytes = SSL_read(ssl, buf, sizeof(buf)); /* get reply & decrypt */
         buf[bytes] = 0;
@@ -119,9 +144,6 @@ int main()
         int i, j, l, sl, o = -1, start, wordcount;
         struct addrinfo hints, *res;
         memset(&hints, 0, sizeof hints);
-
-        raw("USER %s 0 0 :%s\r\n", nick, nick);
-        raw("NICK %s\r\n", nick);
 
         while ((sl = SSL_read(ssl, sbuf, 512)))
         {
@@ -135,7 +157,7 @@ int main()
                     l = o;
                     o = -1;
 
-                    printf(">> %s", buf);
+                    //printf(">> %s", buf);
 
                     if (!strncmp(buf, "PING", 4))
                     {
