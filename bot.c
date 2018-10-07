@@ -1,3 +1,7 @@
+/*
+// compile with
+// gcc *.c -lssl -lcrypto -O3 -o OUTFULE.NAME
+*/
 #include <stdio.h>
 #include <unistd.h>
 #include <malloc.h>
