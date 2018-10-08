@@ -127,6 +127,7 @@ int main()
     char *channel = "#forsen";         // channel to join
     char *host = "irc.chat.twitch.tv"; // server address/ip
     char *port = "6697";               // server's port
+    //char *oauth = "oauth:example";     // required to send messages
 
     ctx = InitCTX();
     server = OpenConnection(host, atoi(port));
@@ -136,6 +137,7 @@ int main()
         ERR_print_errors_fp(stderr);
     else
     {
+        //raw("PASS %s\r\n", oauth); // oauth in case if you want to send messages, required
         raw("NICK %s\r\n", nick);
         raw("JOIN %s\r\n", channel); // todo: add multichannel support i.e. an array of channels
 
